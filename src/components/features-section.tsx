@@ -3,51 +3,51 @@ import { Badge } from "@/components/ui/badge"
 
 const features = [
   {
-    title: "Адаптивная нейрообработка",
-    description: "Самооптимизирующиеся алгоритмы, которые обучаются на нейронных паттернах и улучшают интерпретацию сигналов.",
-    icon: "brain",
-    badge: "ИИ",
-  },
-  {
-    title: "Медицинская защита",
-    description: "Шифрование по стандартам FDA со сквозной защитой конфиденциальных нейронных данных.",
-    icon: "lock",
-    badge: "Сертификат",
-  },
-  {
-    title: "Интуитивное управление",
-    description: "Естественная трансляция мыслей в действия с откликом менее миллисекунды и точностью 99,7%.",
-    icon: "globe",
-    badge: "Точность",
-  },
-  {
-    title: "Предиктивная калибровка",
-    description: "ML-модели, которые предугадывают намерения пользователя и оптимизируют нейронные пути.",
-    icon: "zap",
+    title: "Поиск по всему интернету",
+    description: "Автоматически собираем треки с YouTube, SoundCloud, Bandcamp и сотен других источников в реальном времени.",
+    icon: "🌐",
     badge: "Умный",
   },
   {
-    title: "Биометрическая интеграция",
-    description: "Бесшовная синхронизация с мониторингом жизненных показателей для контроля здоровья.",
-    icon: "link",
-    badge: "Связь",
+    title: "Встроенный плеер",
+    description: "Слушайте музыку прямо на сайте с красивым интерфейсом, очередью треков и управлением с клавиатуры.",
+    icon: "🎧",
+    badge: "Плеер",
   },
   {
-    title: "Поддержка XR",
-    description: "Нативная совместимость с AR/VR-средами для терапевтических и рабочих приложений.",
-    icon: "target",
-    badge: "XR Ready",
+    title: "Скачивание в один клик",
+    description: "Скачивайте любой трек в MP3, FLAC или WAV без регистрации и ограничений — быстро и бесплатно.",
+    icon: "⬇️",
+    badge: "Бесплатно",
+  },
+  {
+    title: "Умные рекомендации",
+    description: "ИИ анализирует ваши вкусы и предлагает новые треки, похожие на то, что вы уже слушаете.",
+    icon: "✨",
+    badge: "ИИ",
+  },
+  {
+    title: "Плейлисты и коллекции",
+    description: "Создавайте личные плейлисты, сохраняйте любимые треки и делитесь подборками с друзьями.",
+    icon: "📂",
+    badge: "Личное",
+  },
+  {
+    title: "Миллионы треков",
+    description: "База постоянно обновляется: новинки появляются автоматически в течение нескольких минут после выхода.",
+    icon: "🎵",
+    badge: "Обновляется",
   },
 ]
 
 export function FeaturesSection() {
   return (
-    <section className="py-24 px-6 bg-background">
+    <section id="features" className="py-24 px-6 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-foreground mb-4 font-sans">Возможности нового поколения</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-4 font-sans">Всё что нужно меломану</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Почувствуйте будущее с технологиями, которые переопределяют возможное
+            Слушай, скачивай и открывай новую музыку — без подписок и ограничений
           </p>
         </div>
 
@@ -60,14 +60,7 @@ export function FeaturesSection() {
             >
               <CardHeader>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-3xl">
-                    {feature.icon === "brain" && "&#129504;"}
-                    {feature.icon === "lock" && "&#128274;"}
-                    {feature.icon === "globe" && "&#127760;"}
-                    {feature.icon === "zap" && "&#9889;"}
-                    {feature.icon === "link" && "&#128279;"}
-                    {feature.icon === "target" && "&#127919;"}
-                  </span>
+                  <span className="text-3xl">{feature.icon}</span>
                   <Badge variant="secondary" className="bg-accent text-accent-foreground">
                     {feature.badge}
                   </Badge>
