@@ -7,6 +7,8 @@ import { SafetySection } from "@/components/safety-section"
 import { TestimonialsSection } from "@/components/testimonials-section"
 import { FAQSection } from "@/components/faq-section"
 import { CTASection } from "@/components/cta-section"
+import { StatsSection } from "@/components/stats-section"
+import { MusicPlayer } from "@/components/music-player"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 
@@ -14,8 +16,9 @@ export default function Index() {
   return (
     <div className="dark">
       <Navbar />
-      <main>
+      <main className="pb-20">
         <Hero3D />
+        <StatsSection />
         <FeaturesSection />
         <section id="technology">
           <TechnologySection />
@@ -32,6 +35,7 @@ export default function Index() {
         <CTASection />
       </main>
       <Footer />
+      <MusicPlayer />
     </div>
   )
 }
