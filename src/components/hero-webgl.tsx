@@ -1,8 +1,9 @@
 import { Canvas, extend, useFrame } from "@react-three/fiber"
 import { useAspect, useTexture } from "@react-three/drei"
-import { useMemo, useRef, useState, useEffect } from "react"
+import { useMemo, useRef, useState, useEffect, useCallback } from "react"
 import * as THREE from "three"
 import Icon from "@/components/ui/icon"
+import { playerStore, type Track } from "@/lib/player-store"
 
 const TEXTUREMAP = { src: "https://i.postimg.cc/XYwvXN8D/img-4.png" }
 const DEPTHMAP = { src: "https://i.postimg.cc/2SHKQh2q/raw-4.webp" }
@@ -114,6 +115,8 @@ const Scene = () => {
   )
 }
 
+const SEARCH_URL = "https://functions.poehali.dev/6af7635d-b105-49fa-a16f-e45c39f4bd6b"
+
 export const Hero3DWebGL = () => {
   const titleWords = "Sound Wave".split(" ")
   const subtitle = "Вся музыка мира — в одном месте. Слушай и скачивай бесплатно."
@@ -123,6 +126,10 @@ export const Hero3DWebGL = () => {
   const [delays, setDelays] = useState<number[]>([])
   const [subtitleDelay, setSubtitleDelay] = useState(0)
   const [query, setQuery] = useState("")
+  const [results, setResults] = useState<Track[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searched, setSearched] = useState(false)
+  const [source, setSource] = useState<"itunes" | "deezer">("itunes")
 
   useEffect(() => {
     setDelays(titleWords.map(() => Math.random() * 0.07))
@@ -146,8 +153,41 @@ export const Hero3DWebGL = () => {
     }
   }, [subtitleVisible])
 
+  const doSearch = useCallback(async (q: string, src = source) => {
+    if (!q.trim()) return
+    setLoading(true)
+    setSearched(true)
+    try {
+      const res = await fetch(`${SEARCH_URL}?q=${encodeURIComponent(q)}&source=${src}&limit=20`)
+      const data = await res.json()
+      setResults(data.tracks || [])
+    } catch {
+      setResults([])
+    } finally {
+      setLoading(false)
+    }
+  }, [source])
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") doSearch(query)
+  }
+
+  const handleTagClick = (tag: string) => {
+    setQuery(tag)
+    doSearch(tag)
+  }
+
+  const handleSourceChange = (src: "itunes" | "deezer") => {
+    setSource(src)
+    if (query.trim()) doSearch(query, src)
+  }
+
+  const playTrack = (track: Track, index: number) => {
+    playerStore.setQueue(results, index)
+  }
+
   return (
-    <div className="h-screen bg-black relative overflow-hidden">
+    <div className="min-h-screen bg-black relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none z-10">
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent" />
@@ -155,9 +195,10 @@ export const Hero3DWebGL = () => {
         <div className="absolute top-0 bottom-0 right-0 w-32 bg-gradient-to-l from-black to-transparent" />
       </div>
 
-      <div className="h-screen items-center w-full absolute z-[60] px-6 flex justify-center flex-col gap-4">
-        <div className="text-3xl md:text-5xl xl:text-6xl 2xl:text-7xl font-extrabold font-orbitron uppercase">
-          <div className="flex space-x-2 lg:space-x-6 overflow-hidden text-white">
+      <div className="min-h-screen w-full absolute z-[60] px-6 flex justify-center flex-col gap-4 pt-24 pb-12">
+        {/* Title */}
+        <div className="text-3xl md:text-5xl xl:text-6xl 2xl:text-7xl font-extrabold font-orbitron uppercase text-center">
+          <div className="flex space-x-2 lg:space-x-6 overflow-hidden text-white justify-center">
             {titleWords.map((word, index) => (
               <div
                 key={index}
@@ -173,7 +214,7 @@ export const Hero3DWebGL = () => {
           </div>
         </div>
 
-        <div className="text-xs md:text-xl xl:text-2xl 2xl:text-3xl overflow-hidden text-white font-bold max-w-4xl mx-auto text-center px-4">
+        <div className="text-xs md:text-xl xl:text-2xl overflow-hidden text-white font-bold max-w-4xl mx-auto text-center px-4">
           <div
             className={subtitleVisible ? "fade-in-subtitle" : ""}
             style={{
@@ -186,28 +227,49 @@ export const Hero3DWebGL = () => {
         </div>
 
         {/* Search bar */}
-        <div
-          className={`w-full max-w-2xl transition-all duration-700 ${searchVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-        >
+        <div className={`w-full max-w-2xl mx-auto transition-all duration-700 ${searchVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+          {/* Source toggle */}
+          <div className="flex gap-2 justify-center mb-3">
+            {(["itunes", "deezer"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => handleSourceChange(s)}
+                className={`text-xs px-4 py-1.5 rounded-full border transition-colors font-semibold ${
+                  source === s
+                    ? "bg-violet-600 border-violet-600 text-white"
+                    : "border-violet-500/30 text-violet-300 hover:border-violet-400 bg-black/30"
+                }`}
+              >
+                {s === "itunes" ? "iTunes" : "Deezer"}
+              </button>
+            ))}
+          </div>
+
           <div className="relative flex items-center">
             <Icon name="Search" size={20} className="absolute left-4 text-gray-400 pointer-events-none" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Поиск артиста, трека, альбома..."
               className="w-full bg-white/10 backdrop-blur-md border border-violet-500/40 rounded-full pl-12 pr-36 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-violet-400 focus:bg-white/15 transition-all text-base"
             />
-            <button className="absolute right-2 bg-violet-600 hover:bg-violet-500 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-colors flex items-center gap-2">
-              <Icon name="Search" size={14} />
+            <button
+              onClick={() => doSearch(query)}
+              disabled={loading}
+              className="absolute right-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-60 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-colors flex items-center gap-2"
+            >
+              {loading ? <Icon name="Loader2" size={14} className="animate-spin" /> : <Icon name="Search" size={14} />}
               Найти
             </button>
           </div>
+
           <div className="flex gap-2 mt-3 justify-center flex-wrap">
-            {["Rap", "Pop", "Lofi", "Electronic", "Rock"].map((tag) => (
+            {["Pop", "Hip-Hop", "Lofi", "Electronic", "Rock", "Jazz"].map((tag) => (
               <button
                 key={tag}
-                onClick={() => setQuery(tag)}
+                onClick={() => handleTagClick(tag)}
                 className="text-xs text-violet-300 border border-violet-500/30 hover:border-violet-400 hover:text-violet-200 px-3 py-1 rounded-full transition-colors bg-black/30"
               >
                 {tag}
@@ -215,20 +277,85 @@ export const Hero3DWebGL = () => {
             ))}
           </div>
         </div>
+
+        {/* Results */}
+        {searched && (
+          <div className="w-full max-w-4xl mx-auto mt-2">
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <Icon name="Loader2" size={36} className="text-violet-400 animate-spin" />
+              </div>
+            ) : results.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">Ничего не найдено. Попробуйте другой запрос.</p>
+            ) : (
+              <>
+                <p className="text-gray-500 text-sm mb-3 text-center">Найдено {results.length} треков</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {results.map((track, i) => (
+                    <div
+                      key={track.id + i}
+                      className="flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-violet-500/20 hover:border-violet-500/40 rounded-xl px-4 py-3 transition-all group"
+                    >
+                      {/* Cover */}
+                      {track.cover ? (
+                        <img src={track.cover} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-violet-900 flex items-center justify-center shrink-0">
+                          <Icon name="Music" size={20} className="text-violet-300" />
+                        </div>
+                      )}
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-semibold truncate">{track.title}</p>
+                        <p className="text-gray-400 text-xs truncate">{track.artist}</p>
+                        {track.genre && <p className="text-violet-400 text-xs mt-0.5">{track.genre}</p>}
+                      </div>
+                      {/* Duration */}
+                      <span className="text-gray-500 text-xs shrink-0">{track.duration > 0 ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, "0")}` : ""}</span>
+                      {/* Actions */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        {track.preview_url && (
+                          <button
+                            onClick={() => playTrack(track, i)}
+                            className="w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-500 flex items-center justify-center transition-colors"
+                          >
+                            <Icon name="Play" size={14} className="text-white" />
+                          </button>
+                        )}
+                        {track.preview_url && (
+                          <a
+                            href={track.preview_url}
+                            download
+                            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                            title="Скачать"
+                          >
+                            <Icon name="Download" size={14} className="text-gray-300" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
-      <Canvas
-        flat
-        gl={{
-          antialias: true,
-          alpha: false,
-          powerPreference: "high-performance",
-        }}
-        camera={{ position: [0, 0, 1] }}
-        style={{ background: "#000000" }}
-      >
-        <Scene />
-      </Canvas>
+      <div className="h-screen">
+        <Canvas
+          flat
+          gl={{
+            antialias: true,
+            alpha: false,
+            powerPreference: "high-performance",
+          }}
+          camera={{ position: [0, 0, 1] }}
+          style={{ background: "#000000" }}
+        >
+          <Scene />
+        </Canvas>
+      </div>
     </div>
   )
 }

@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Search iTunes",
+      "method": "GET",
+      "path": "/?q=eminem&source=itunes&limit=5",
+      "expectedStatus": 200,
+      "expectedBody": {"total": 5},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Search Deezer",
+      "method": "GET",
+      "path": "/?q=coldplay&source=deezer&limit=5",
+      "expectedStatus": 200,
+      "expectedBody": {"total": 5},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Empty query error",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "Query is required"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
